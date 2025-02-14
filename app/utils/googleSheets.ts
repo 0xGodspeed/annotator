@@ -1,5 +1,3 @@
-import { getUser } from "../actions/auth"
-
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY || "YOUR_DUMMY_API_KEY"
 const SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || "YOUR_DUMMY_SHEET_ID"
 

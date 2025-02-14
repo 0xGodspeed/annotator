@@ -26,6 +26,33 @@ export default function AnnotatePage() {
     }>
   >([])
 
+  // Add new state for managing highlights and selected error type
+  const [highlights, setHighlights] = useState<Array<{ 
+    id: string;
+    text: string; 
+    errorType: string; 
+    color: string; 
+    summaryId: string;
+  }>>([])
+  const [selectedErrorType, setSelectedErrorType] = useState<string | null>(null)
+
+  // Define error types and their colors
+  const errorTypes = [
+    { name: 'Incorrect Definitions', color: '#FFB6B6' },
+    { name: 'Incorrect Synonyms', color: '#BAFFC9' },
+    { name: 'Incorrect Background', color: '#BAE1FF' },
+    { name: 'Entity errors', color: '#FFE4BA' },
+    { name: 'Contradiction', color: '#F8BAFF' },
+    { name: 'Omission', color: '#FFFBA1' },
+    { name: 'Jumping to Conclusions', color: '#FFD1DC' },
+    { name: 'Misinterpretation', color: '#D4A5A5' }
+  ]
+
+  // Add handler for error type selection
+  const handleErrorTypeSelect = (errorType: string) => {
+    setSelectedErrorType(selectedErrorType === errorType ? null : errorType)
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
@@ -54,13 +81,13 @@ export default function AnnotatePage() {
         const data = [
           {
             id: "a",
-            text: "test text",
-            summary: "test summary",
+            text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nunc id aliquam tincidunt, nisl nunc tincidunt nunc, vitae aliquam nunc nunc vitae nunc. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
           },
           {
             id: "b",
-            text: "test text",
-            summary: "test summary",
+            text: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            summary: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
           },
         ]
         setTextsAndSummaries(data)
@@ -150,8 +177,29 @@ export default function AnnotatePage() {
     <div className="flex flex-col h-screen">
       <header className="bg-gray-100 p-4 sticky top-0 z-10 flex justify-between items-center">
         <h1 className="text-2xl font-bold">Text Annotation Tool</h1>
-        <div className="flex items-center gap-4">
-          {/* {user && <span>Welcome, {user.name}</span>} */}
+        <div className="flex items-center gap-2">
+          {errorTypes.map((errorType) => (
+            <Button
+              key={errorType.name}
+              variant={selectedErrorType === errorType.name ? "secondary" : "outline"}
+              className="px-2 py-1 text-xs"
+              style={{
+                backgroundColor: selectedErrorType === errorType.name ? errorType.color : errorType.color + '80',
+                borderColor: errorType.color,
+                color: 'black'
+              }}
+              onClick={() => handleErrorTypeSelect(errorType.name)}
+            >
+              {errorType.name}
+            </Button>
+          ))}
+          <Button 
+            variant="outline"
+            onClick={() => setHighlights([])}
+            className="px-2 py-1 text-xs"
+          >
+            Clear All Highlights
+          </Button>
           <Button 
             onClick={handleLogout}
             disabled={loading}
@@ -183,7 +231,27 @@ export default function AnnotatePage() {
           <TextDisplay text={currentItem.text} />
         </div>
         <div className="lg:w-1/2 h-full overflow-y-auto p-4">
-          <SummaryDisplay summary={currentItem.summary} />
+          <SummaryDisplay 
+            summary={currentItem.summary}
+            summaryId={currentItem.id}
+            highlights={highlights.filter(h => h.summaryId === currentItem.id)}
+            selectedErrorType={selectedErrorType}
+            onHighlight={(text, errorType, color, updatedHighlights) => {
+              if (updatedHighlights) {
+                // If we're updating an existing highlight
+                setHighlights(updatedHighlights);
+              } else {
+                // If it's a new highlight
+                setHighlights(prev => [...prev, { 
+                  id: Math.random().toString(36).substr(2, 9),
+                  text, 
+                  errorType, 
+                  color,
+                  summaryId: currentItem.id 
+                }]);
+              }
+            }}
+          />
         </div>
       </main>
       <footer className="bg-gray-100 p-4 sticky bottom-0 z-10">
